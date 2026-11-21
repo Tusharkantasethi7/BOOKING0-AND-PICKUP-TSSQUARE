@@ -1,42 +1,72 @@
-# TS Square – advance food booking (Python / Flask)
+# TS Square – Advance Food Booking & Restaurant Inventory Management
 
-Customers book food ahead and pay 25% online. They pay the other 75% at pickup.
-There are three portals: customer, restaurant and admin.
+Customers book meals in advance, pay **25% online**, and pay the remaining **75% upon pickup**. Features real-time stock and quantity management, AI-generated culinary photos, smooth micro-animations, and full SQLite database persistence.
 
-## Run
-    python -m venv venv && source venv/bin/activate     # Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    python app.py                                        # open http://localhost:5000
+There are three complete portals:
+1. **Customer Portal**: Browse approved restaurants, filter by cuisine/rating/price, view live remaining dish quantities with urgency alerts, and pay 25% advance.
+2. **Restaurant Portal**: Real-time dish inventory management (`-5`, `-1`, `+1`, `+5`, custom stock, daily quota, "⚡ Restock All"), order state machine (`Confirmed` → `Preparing` → `Ready` → `Picked up`), and dish creation with AI photo presets or uploads.
+3. **Admin Portal**: Review pending restaurants (Approve / Reject), view customer analytics, toggle customer blocks, configure commission rates (0–50%), and calculate net payouts.
 
-Admin login: admin@tssquare.com / admin123 (change it with the env vars below).
-Restaurants register themselves and must be approved by the admin before they go live.
+---
 
-## Settings (environment variables)
-| Variable | Purpose |
-|---|---|
-| SECRET_KEY | Long random string. Required in production |
-| ADMIN_EMAIL, ADMIN_PASSWORD | Admin account, set before the first run |
-| RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET | Real payments and refunds. Without them the app runs in demo payment mode |
-| SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM | Booking and password-reset emails. Without them emails are printed in the terminal |
+## Quick Start
 
-## Go live
-    gunicorn -w 2 -b 0.0.0.0:8000 app:app
-Put it behind HTTPS (Nginx or a host like Render or Railway). Back up `tssquare.db` and the `uploads/` folder.
+### 1. Activate Environment & Run
+```bash
+# Windows
+.\venv\Scripts\activate
+python app.py
+```
+Open **[http://localhost:5000](http://localhost:5000)** in your browser.
 
-## What is included
-Passwords are hashed. Password reset by email link. Restaurant logo and dish photos. Search and filters.
-Ratings and reviews (only after a picked-up order). Opening hours and a per-hour booking limit.
-Email confirmation and a QR code for pickup. Automatic refund of the 25% advance on cancel.
-Admin can approve restaurants, block users, set commission and see payouts. English, Hindi and Odia labels.
+### 2. Default Test Accounts
+| Role | Email | Password | Details |
+|---|---|---|---|
+| **Admin** | `admin@tssquare.com` | `admin123` | Approves restaurants, sets commissions |
+| **Restaurant 1** | `spice@demo.com` | `rest123` | Spice Garden (Mughlai & Biryani) |
+| **Restaurant 2** | `royal@demo.com` | `rest123` | Royal Dine & Cafe (Pizza, Burgers) |
+| **Customer** | `rahul@demo.com` | `user123` | Pre-loaded customer with active & past bookings |
 
-## Not included yet
-Email verification at signup, SMS or WhatsApp messages, automatic bank payouts to restaurants.
+*(You can reseed the database anytime by running `python seed_db.py`)*
 
-## Project structure
-    app.py            Flask backend (API, auth, payments, refunds, admin)
-    schema.sql        Database tables (SQLite, created automatically on first run)
-    requirements.txt  Python packages
-    static/index.html Website page
-    static/css/style.css  Styles
-    static/js/app.js  Frontend logic (customer, restaurant and admin portals)
-    uploads/          Restaurant logos and dish photos (created automatically)
+---
+
+## What's New & Upgraded
+
+### 1. 🗄️ SQLite Database Integration
+- Full persistent database in `tssquare.db` (`users`, `rests`, `menu`, `orders`, `reviews`, `resets`, `settings`).
+- Dynamic migrations automatically update columns if schema evolves.
+- Stock quantities are locked upon booking and restored automatically if an order is cancelled.
+
+### 2. 📸 AI-Generated Food & Restaurant Photos
+- High-resolution culinary photos generated for key signature dishes:
+  - Hyderabadi Chicken Dum Biryani
+  - Sizzling Paneer Tikka
+  - Butter Chicken Murgh Makhani
+  - Wood-Fired Margherita Pizza
+  - Double Smash Gourmet Cheeseburger
+  - Crispy Mysore Masala Dosa
+  - Royal Shahi Gulab Jamun
+  - Caramel Frappe Cold Coffee
+  - Restaurant emblems for *Spice Garden* and *Royal Dine*
+- Photo gallery picker in the restaurant portal allows instant 1-click photo selection when adding dishes.
+
+### 3. 📦 Restaurant Quantity & Stock Management
+- **Live Inventory Dashboard**: Displays active dishes, portions in stock, low-stock warnings, and sold-out items.
+- **Real-Time Adjustments**: Quick `[-5]`, `[-1]`, `[+1]`, `[+5]` steppers and direct number inputs.
+- **Daily Quotas**: Set standard daily prep quantities and use **"⚡ Restock All Dishes"** for 1-click morning replenishment.
+- **Auto Stock Deduction & Cancellation Restoral**: Ordered quantities deduct automatically upon payment verification; cancellations restore stock to the restaurant's inventory.
+
+### 4. ⚡ Customer Remaining Quantity & Urgency Indicators
+- **High Stock**: `⚡ X in stock` with green availability progress bar.
+- **Low Stock (< 5 left)**: `🔥 Hurry, only X left!` with pulsing flame animation.
+- **Sold Out**: `❌ Sold Out` badge with disabled buttons and dimmed card.
+- **Cart Guard**: Stepper controls dynamically prevent customers from adding more than the available stock.
+- **Floating Cart Drawer**: Animated bottom tray displaying current items, 25% advance breakdown, and checkout prompt.
+
+### 5. ✨ Modern Styling & Animations
+- Glassmorphism sticky navbar with glowing animated logo.
+- Smooth card hover lift and image zoom effects.
+- Standard Indian Veg / Non-Veg dot icons.
+- Multi-language support (English, हिन्दी, ଓଡ଼ିଆ).
+- Pickup QR code generator for easy counter collection.
